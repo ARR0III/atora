@@ -1,0 +1,2 @@
+# Atora - Atomic Rain
+This program is designed to permanently destroy data in files on the hard disk of a computer running Windows OS. The program recursively traverses all the directories on logical disks from A to Z and encrypts all files in these directories with random keys. The source code of the program is fully tested and workable, the compiled program itself has been tested on Windows XP and Windows 8.1.
