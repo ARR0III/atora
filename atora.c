@@ -33,9 +33,9 @@ char * slash        = "\\";
 char * t_one        = ".";
 char * t_two        = "..";
 
-short int size_uc   = sizeof(unsigned char); 
+short int size_uc = sizeof(unsigned char); 
 
-unsigned short int  vi, bi;
+unsigned char vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
 unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
