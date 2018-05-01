@@ -42,15 +42,15 @@ unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
 unsigned char data       [_BYTE]        = {_ZERO};
 
 int main (void) {
- short int i;
+ unsigned char disk;
  time_t real_time;
  char LOCAL_DISK[] = "+:";
  
  srand(time(&real_time));
 
- for (i = 65; i <= 90; i++) {
-  if (checklogicaldisk((unsigned char)i) == _ZERO) {
-   LOCAL_DISK[_ZERO] = i;
+ for (disk = 'A'; disk <= 'Z'; disk++) {
+  if (checklogicaldisk(disk) == _ZERO) {
+   LOCAL_DISK[_ZERO] = disk;
    finddir(LOCAL_DISK, expansion);
   }
  }
