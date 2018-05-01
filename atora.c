@@ -35,7 +35,7 @@ char * t_two        = "..";
 
 short int size_uc = sizeof(unsigned char); 
 
-unsigned short vi, bi;
+short int vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
 unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
