@@ -113,7 +113,7 @@ short int checklogicaldisk(unsigned char number_disk) {
  unsigned char LOGICAL_DISK[] = "+:\\";
  LOGICAL_DISK[_ZERO] = number_disk;
 
- short int result = (short int)GetDriveType(&LOGICAL_DISK[_ZERO]);
+ short int result = (short int)GetDriveType(LOGICAL_DISK);
  
  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE))
   return _ZERO;
@@ -172,7 +172,7 @@ void swap (unsigned char * a, unsigned char * b) {
 void initialized(const unsigned char * key, short int length) {
 
  for (vi = _ZERO; vi < _BYTE; vi++)
-  secret_key[vi] = vi;
+  secret_key[vi] = (unsigned char)vi;
 
  for (vi = bi = _ZERO; vi < _BYTE; vi++) {
   bi = (bi + key[vi % length] + secret_key[vi]) % _BYTE;
